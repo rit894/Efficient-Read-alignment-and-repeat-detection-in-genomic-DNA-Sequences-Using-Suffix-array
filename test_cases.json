@@ -1,0 +1,370 @@
+{
+  "description": "Constant (hand-designed) test cases for the DNA suffix array case study. Positions are 0-based start indices; expected values were produced by brute force and checked by hand.",
+  "suffix_array": [
+    {
+      "text": "banana",
+      "expected_sa": [
+        6,
+        5,
+        3,
+        1,
+        0,
+        4,
+        2
+      ],
+      "expected_lcp": [
+        0,
+        0,
+        1,
+        3,
+        0,
+        0,
+        2
+      ],
+      "expected_bwt": "annb$aa"
+    },
+    {
+      "text": "ACGT",
+      "expected_sa": [
+        4,
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_lcp": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_bwt": "T$ACG"
+    },
+    {
+      "text": "AAAA",
+      "expected_sa": [
+        4,
+        3,
+        2,
+        1,
+        0
+      ],
+      "expected_lcp": [
+        0,
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_bwt": "AAAA$"
+    }
+  ],
+  "pattern_search": [
+    {
+      "id": "banana_overlap",
+      "note": "overlapping matches",
+      "text": "banana",
+      "pattern": "ana",
+      "expected": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "banana_single_char",
+      "note": "single character pattern",
+      "text": "banana",
+      "pattern": "a",
+      "expected": [
+        1,
+        3,
+        5
+      ]
+    },
+    {
+      "id": "banana_no_match",
+      "note": "pattern absent",
+      "text": "banana",
+      "pattern": "nab",
+      "expected": []
+    },
+    {
+      "id": "banana_whole_text",
+      "note": "pattern equals text",
+      "text": "banana",
+      "pattern": "banana",
+      "expected": [
+        0
+      ]
+    },
+    {
+      "id": "pattern_longer_than_text",
+      "note": "pattern longer than text",
+      "text": "abc",
+      "pattern": "abcd",
+      "expected": []
+    },
+    {
+      "id": "all_same_letter",
+      "note": "run of one letter, many overlaps",
+      "text": "aaaaaa",
+      "pattern": "aa",
+      "expected": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "dna_basic",
+      "note": "DNA, two hits",
+      "text": "ACGTACGTAC",
+      "pattern": "ACG",
+      "expected": [
+        0,
+        4
+      ]
+    },
+    {
+      "id": "dna_start_and_end",
+      "note": "match at both ends",
+      "text": "ACGTTTACG",
+      "pattern": "ACG",
+      "expected": [
+        0,
+        6
+      ]
+    },
+    {
+      "id": "dna_tandem_repeat",
+      "note": "tandem repeat (dinucleotide)",
+      "text": "ATATATATAT",
+      "pattern": "ATAT",
+      "expected": [
+        0,
+        2,
+        4,
+        6
+      ]
+    },
+    {
+      "id": "dna_no_match",
+      "note": "absent triplet",
+      "text": "ACGTACGT",
+      "pattern": "GGG",
+      "expected": []
+    },
+    {
+      "id": "dna_palindromic_site",
+      "note": "EcoRI restriction site occurs twice",
+      "text": "GAATTCGGAATTC",
+      "pattern": "GAATTC",
+      "expected": [
+        0,
+        7
+      ]
+    },
+    {
+      "id": "dna_tata_box",
+      "note": "TATA-box-like motif twice",
+      "text": "CGCTATAAAAGGCTATAAAAGC",
+      "pattern": "TATAAAA",
+      "expected": [
+        3,
+        13
+      ]
+    },
+    {
+      "id": "dna_last_position",
+      "note": "match at final position",
+      "text": "GGGGGACGT",
+      "pattern": "CGT",
+      "expected": [
+        6
+      ]
+    },
+    {
+      "id": "dna_pattern_equals_text",
+      "note": "pattern equals text",
+      "text": "GATTACA",
+      "pattern": "GATTACA",
+      "expected": [
+        0
+      ]
+    },
+    {
+      "id": "dna_single_base_absent",
+      "note": "base not in text at all",
+      "text": "AAAAAA",
+      "pattern": "C",
+      "expected": []
+    }
+  ],
+  "longest_repeated_substring": [
+    {
+      "text": "banana",
+      "expected_length": 3
+    },
+    {
+      "text": "ACGTACGTAC",
+      "expected_length": 6
+    },
+    {
+      "text": "ATATATAT",
+      "expected_length": 6
+    },
+    {
+      "text": "ACGT",
+      "expected_length": 0
+    },
+    {
+      "text": "GATTACAGATTACA",
+      "expected_length": 7
+    },
+    {
+      "text": "AAAAA",
+      "expected_length": 4
+    }
+  ],
+  "longest_common_substring": [
+    {
+      "a": "ACGTACGT",
+      "b": "TTACGTAA",
+      "expected_length": 5
+    },
+    {
+      "a": "AAAA",
+      "b": "CCCC",
+      "expected_length": 0
+    },
+    {
+      "a": "GATTACA",
+      "b": "TACAGAT",
+      "expected_length": 4
+    },
+    {
+      "a": "ACGTACGTTT",
+      "b": "GGGACGTACGGG",
+      "expected_length": 7
+    },
+    {
+      "a": "ACGTAC",
+      "b": "ACGTAC",
+      "expected_length": 6
+    }
+  ],
+  "approximate_search": [
+    {
+      "text": "ACGTACGTACGT",
+      "pattern": "ACGA",
+      "k": 1,
+      "expected": [
+        [
+          0,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          8,
+          1
+        ]
+      ]
+    },
+    {
+      "text": "ACGTACGTACGT",
+      "pattern": "ACGT",
+      "k": 0,
+      "expected": [
+        [
+          0,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ]
+      ]
+    },
+    {
+      "text": "AAAAAAAA",
+      "pattern": "AAC",
+      "k": 1,
+      "expected": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ]
+    },
+    {
+      "text": "ACGTTGCA",
+      "pattern": "TTTT",
+      "k": 2,
+      "expected": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "text": "ACGTACGT",
+      "pattern": "ACGTACGTAA",
+      "k": 2,
+      "expected": []
+    },
+    {
+      "text": "GATTACAGATTACA",
+      "pattern": "GATTAGA",
+      "k": 1,
+      "expected": [
+        [
+          0,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ]
+    }
+  ]
+}
