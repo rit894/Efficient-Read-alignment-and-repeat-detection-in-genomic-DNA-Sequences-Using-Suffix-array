@@ -51,7 +51,9 @@ dna_suffix_array_project/
 `-- standalone/
     `-- dna_suffix_array_all_in_one.py   <- everything merged into one file with main()
 ```
+## Workflow in one line
 
+FASTA genome → SuffixArray → LCP / BWT → FMIndex → applications (search, align, repeats, compare) → tests and benchmark
 ## Quick start
 
 Requires Python 3.10 or newer. No packages are needed (matplotlib is optional, for the plot).
