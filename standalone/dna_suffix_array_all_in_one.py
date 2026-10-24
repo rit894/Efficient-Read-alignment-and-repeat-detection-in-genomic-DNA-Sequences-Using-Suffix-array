@@ -36,6 +36,7 @@ from typing import List, Tuple
 # ---------------------------------------------------------------------------
 # 1. Suffix Array
 # ---------------------------------------------------------------------------
+# Defines the abstract interface for suffix-array operations.
 class SuffixArrayADT(ABC):
     """
     Suffix Array ADT.
@@ -77,6 +78,7 @@ class SuffixArrayADT(ABC):
 # ---------------------------------------------------------------------------
 # 2. LCP Array
 # ---------------------------------------------------------------------------
+# Defines the interface for longest-common-prefix array operations.
 class LCPArrayADT(ABC):
     """
     LCP Array ADT.
@@ -113,6 +115,7 @@ class LCPArrayADT(ABC):
 # ---------------------------------------------------------------------------
 # 3. Burrows-Wheeler Transform
 # ---------------------------------------------------------------------------
+# Defines the interface for building and reversing the Burrows-Wheeler Transform.
 class BWTADT(ABC):
     """
     BWT ADT.
@@ -144,6 +147,7 @@ class BWTADT(ABC):
 # ---------------------------------------------------------------------------
 # 4. FM-Index
 # ---------------------------------------------------------------------------
+# Defines the operations supported by an FM-index.
 class FMIndexADT(ABC):
     """
     FM-Index ADT (compressed suffix-array-like index).
@@ -179,6 +183,7 @@ class FMIndexADT(ABC):
 # ---------------------------------------------------------------------------
 # 5. Common matcher interface (used for the fair benchmark)
 # ---------------------------------------------------------------------------
+# Gives all search algorithms a common interface for fair comparison.
 class PatternMatcherADT(ABC):
     """
     Pattern Matcher ADT - the one interface shared by Naive, KMP, Suffix Array
@@ -209,6 +214,7 @@ from typing import Dict, List, Optional, Tuple
 SENTINEL = "$"  # default end marker; another character is chosen automatically if '$' is in the text
 
 
+# Chooses a unique end marker so suffixes can be sorted safely.
 def choose_sentinel(text: str) -> str:
     """
     Pick the end marker: '$' when it is unused and smaller than every character
@@ -225,11 +231,13 @@ def choose_sentinel(text: str) -> str:
     return chr(code)
 
 
+# Adds the chosen end marker to the input text.
 def terminate(text: str) -> str:
     """Return text + unique end marker. Any input string is accepted (never raises)."""
     return text + choose_sentinel(text)
 
 
+# Keeps empty-pattern handling consistent across search methods.
 def check_pattern(pattern: str) -> None:
     """All search methods reject the empty pattern the same way."""
     if not pattern:
@@ -239,6 +247,7 @@ def check_pattern(pattern: str) -> None:
 # ===========================================================================
 # 1. Suffix Array
 # ===========================================================================
+# Builds the suffix array by repeatedly sorting longer prefixes.
 def _prefix_doubling(s: str) -> List[int]:
     """
     Manber-Myers style prefix doubling.
@@ -267,6 +276,7 @@ def _prefix_doubling(s: str) -> List[int]:
     return sa
 
 
+# Stores suffix starting positions in lexicographical order.
 class SuffixArray(SuffixArrayADT):
     """Suffix array stored as a plain Python list of ints."""
 
@@ -323,6 +333,7 @@ class SuffixArray(SuffixArrayADT):
 # ===========================================================================
 # 2. LCP Array (Kasai)
 # ===========================================================================
+# Uses Kasai's algorithm to calculate common prefixes efficiently.
 class LCPArray(LCPArrayADT):
     """LCP array built with Kasai's linear-time algorithm."""
 
@@ -370,6 +381,7 @@ class LCPArray(LCPArrayADT):
 # ===========================================================================
 # 3. Burrows-Wheeler Transform
 # ===========================================================================
+# Builds the BWT from the suffix array and supports reconstruction.
 class BWT(BWTADT):
     """BWT string derived from a suffix array; supports inversion."""
 
@@ -414,6 +426,7 @@ class BWT(BWTADT):
 # ===========================================================================
 # 4. FM-Index
 # ===========================================================================
+# Builds a compressed search index using BWT and sampled suffix positions.
 class FMIndex(FMIndexADT):
     """
     FM-index with
@@ -508,6 +521,7 @@ class FMIndex(FMIndexADT):
 # ===========================================================================
 # 5. Pattern matchers sharing one interface
 # ===========================================================================
+# Baseline matcher that checks every possible text position.
 class NaiveMatcher(PatternMatcherADT):
     """Brute force: try every alignment. O(n*m) worst case, O(1) extra space."""
     name = "Naive"
@@ -521,6 +535,7 @@ class NaiveMatcher(PatternMatcherADT):
         return [i for i in range(n - m + 1) if t[i:i + m] == pattern]
 
 
+# KMP avoids rechecking characters by using the failure function.
 class KMPMatcher(PatternMatcherADT):
     """Knuth-Morris-Pratt: O(n + m) per query, O(m) extra space."""
     name = "KMP"
@@ -554,6 +569,7 @@ class KMPMatcher(PatternMatcherADT):
         return res
 
 
+# Adapts suffix-array search to the shared matcher interface.
 class SuffixArrayMatcher(PatternMatcherADT):
     """Index-based search: build once O(n log^2 n), then O(m log n + occ) per query."""
     name = "Suffix Array"
@@ -565,6 +581,7 @@ class SuffixArrayMatcher(PatternMatcherADT):
         return self.index.search(pattern)
 
 
+# Adapts FM-index searching to the shared matcher interface.
 class FMIndexMatcher(PatternMatcherADT):
     """Compressed index: backward search O(m) counting, locate adds LF-walks."""
     name = "FM-Index"
@@ -597,11 +614,13 @@ _COMPLEMENT = str.maketrans("ACGT", "TGCA")
 # ---------------------------------------------------------------------------
 # DNA helpers
 # ---------------------------------------------------------------------------
+# Produces the complementary DNA strand in reverse order.
 def reverse_complement(seq: str) -> str:
     """Reverse complement of a DNA string (the opposite strand, read 5'->3')."""
     return seq.translate(_COMPLEMENT)[::-1]
 
 
+# Calculates the fraction of DNA bases that are G or C.
 def gc_content(seq: str) -> float:
     """Fraction of bases that are G or C."""
     return (seq.count("G") + seq.count("C")) / len(seq) if seq else 0.0
@@ -610,6 +629,7 @@ def gc_content(seq: str) -> float:
 # ---------------------------------------------------------------------------
 # Repeats and comparison of genomes (suffix array + LCP)
 # ---------------------------------------------------------------------------
+# Finds the longest repeated sequence using adjacent suffixes and LCP values.
 def longest_repeated_substring(text: str) -> Tuple[str, int, List[int]]:
     """
     Longest substring that occurs at least twice.
@@ -626,6 +646,7 @@ def longest_repeated_substring(text: str) -> Tuple[str, int, List[int]]:
     return sub, length, sa.search(sub)
 
 
+# Finds the longest sequence shared by two input strings.
 def longest_common_substring(a: str, b: str) -> Tuple[str, int, int, int]:
     """
     Longest substring shared by genomes a and b (e.g. two virus strains).
@@ -657,11 +678,13 @@ def longest_common_substring(a: str, b: str) -> Tuple[str, int, int, int]:
 # ---------------------------------------------------------------------------
 # Approximate matching and read alignment
 # ---------------------------------------------------------------------------
+# Counts character mismatches between equal-length strings.
 def hamming(a: str, b: str) -> int:
     """Number of positions where equal-length strings differ."""
     return sum(x != y for x, y in zip(a, b))
 
 
+# Finds pattern matches that allow up to k substitutions.
 def approximate_search(text: str, pattern: str, k: int,
                        matcher: PatternMatcherADT) -> List[Tuple[int, int]]:
     """
@@ -701,6 +724,7 @@ def approximate_search(text: str, pattern: str, k: int,
     return out
 
 
+# Maps simulated sequencing reads to a genome on either DNA strand.
 def align_reads(reads: List[Dict], matcher: PatternMatcherADT, genome: str,
                 max_mismatch: int = 0) -> Dict[str, List[Tuple[int, str, int]]]:
     """
@@ -738,6 +762,7 @@ class _TrieNode:
         self.pos: int = -1  # start position of the suffix that ends here (leaf), else -1
 
 
+# Trie-based alternative stores every suffix as a path of linked nodes.
 class SuffixTrie(PatternMatcherADT):
     """
     Uncompressed suffix trie built from linked nodes.
@@ -784,6 +809,7 @@ class SuffixTrie(PatternMatcherADT):
 # ---------------------------------------------------------------------------
 # k-mer hash index
 # ---------------------------------------------------------------------------
+# Hashes fixed-length substrings to narrow down search candidates.
 class KmerIndex(PatternMatcherADT):
     """
     Hash index of every k-mer. A pattern of length >= k is looked up by its
@@ -821,6 +847,7 @@ ALTERNATIVE_MATCHERS = [SuffixTrie, KmerIndex]
 # ---------------------------------------------------------------------------
 # Measured comparison: space blow-up of the linked suffix trie vs the array
 # ---------------------------------------------------------------------------
+# Measures time and memory use of a suffix trie versus a suffix array.
 def trie_vs_array(sizes=(100, 200, 400, 800), seed: int = 5, verbose: bool = True):
     """Build a suffix trie and a suffix array on the same DNA; report size and time."""
 
@@ -873,6 +900,7 @@ from typing import Dict, List, Optional
 BASES = "ACGT"
 
 
+# Generates reproducible synthetic DNA with a chosen GC proportion.
 def random_genome(length: int, gc_content: float = 0.5, seed: Optional[int] = None) -> str:
     """Random DNA of `length` bases where P(G) = P(C) = gc/2 and P(A) = P(T) = (1-gc)/2."""
     rnd = random.Random(seed)
@@ -906,6 +934,7 @@ def mutate(seq: str, rate: float = 0.01, seed: Optional[int] = None) -> str:
     return "".join(out)
 
 
+# Creates artificial sequencing reads, optionally with errors and reverse strands.
 def simulate_reads(genome: str, n_reads: int = 20, read_len: int = 50,
                    error_rate: float = 0.0, both_strands: bool = True,
                    seed: Optional[int] = None) -> List[Dict]:
@@ -1146,6 +1175,7 @@ def check_applications() -> List[str]:
     return problems
 
 
+# Runs unusual-input tests and reports any failures.
 def run_edge_cases(verbose: bool = True) -> Dict[str, List[str]]:
     """Run everything; returns {case name: problems} for failing cases only."""
     failures: Dict[str, List[str]] = {}
