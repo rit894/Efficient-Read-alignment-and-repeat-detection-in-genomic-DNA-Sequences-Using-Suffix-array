@@ -27,6 +27,14 @@ from typing import List, Tuple
 # ---------------------------------------------------------------------------
 # 1. Suffix Array
 # ---------------------------------------------------------------------------
+
+# This ADT defines the basic operations of a suffix array.
+# It supports building, searching, and counting patterns.
+# Suffixes are arranged in lexicographical order.
+# Each suffix is identified by its starting position.
+# Binary search can be used to find matching suffixes.
+# Concrete implementations define how these operations work.
+
 class SuffixArrayADT(ABC):
     """
     Suffix Array ADT.
@@ -68,6 +76,14 @@ class SuffixArrayADT(ABC):
 # ---------------------------------------------------------------------------
 # 2. LCP Array
 # ---------------------------------------------------------------------------
+
+# This ADT defines operations for the LCP array.
+# LCP stands for Longest Common Prefix.
+# It measures the common starting characters of two suffixes.
+# The array helps identify repeated substrings.
+# It also supports comparisons between non-adjacent suffixes.
+# The implementation determines how LCP values are calculated.
+
 class LCPArrayADT(ABC):
     """
     LCP Array ADT.
@@ -104,6 +120,14 @@ class LCPArrayADT(ABC):
 # ---------------------------------------------------------------------------
 # 3. Burrows-Wheeler Transform
 # ---------------------------------------------------------------------------
+
+# This ADT represents the Burrows-Wheeler Transform.
+# The transform rearranges characters of the original text.
+# It uses the ordering of suffixes to construct the result.
+# The transformed text retains the original character frequencies.
+# The inverse operation reconstructs the original text.
+# The implementation defines the transformation procedure.
+
 class BWTADT(ABC):
     """
     BWT ADT.
@@ -135,6 +159,14 @@ class BWTADT(ABC):
 # ---------------------------------------------------------------------------
 # 4. FM-Index
 # ---------------------------------------------------------------------------
+
+# This ADT defines the operations supported by an FM-index.
+# The FM-index uses the Burrows-Wheeler Transform.
+# Backward search helps locate matching suffixes.
+# Occurrence counts help update the search interval.
+# The count operation returns the number of matches.
+# The locate operation returns their starting positions.
+
 class FMIndexADT(ABC):
     """
     FM-Index ADT (compressed suffix-array-like index).
@@ -170,6 +202,14 @@ class FMIndexADT(ABC):
 # ---------------------------------------------------------------------------
 # 5. Common matcher interface (used for the fair benchmark)
 # ---------------------------------------------------------------------------
+
+# This ADT provides a common interface for pattern matching.
+# Different search algorithms can implement the same methods.
+# Preprocessing prepares the text for searching.
+# The find_all method returns every matching position.
+# The count method reports the total number of matches.
+# A common interface makes algorithm benchmarking easier.
+
 class PatternMatcherADT(ABC):
     """
     Pattern Matcher ADT - the one interface shared by Naive, KMP, Suffix Array
