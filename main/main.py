@@ -139,13 +139,41 @@ def demo(query_pattern=None, fasta_path=None) -> None:
         print(" PART 2 - Random DNA (genotype driver)")
     print("=" * 66)
 
+    if fasta_path:
+        g = read_fasta(fasta_path)
+        read_length = min(40, len(g))
+        suite = {
+            "genome": g,
+            "strain": mutate(g, rate=0.01, seed=9),
+            "reads": simulate_reads(
+                g, n_reads=20, read_len=read_length,
+                error_rate=0.02, seed=10
+            ),
+        }
+        print(f"Reference file: {fasta_path}")
+        print("The reference sequence is loaded unchanged from the FASTA file.")
+        print(
+            f"Test data: 20 simulated reads of length {read_length}, "
+            "with a 2% substitution probability per base."
+        )
+        print("Comparison copy: simulated substitutions with a 1% probability per base.")
+        print("The sequence is analyzed linearly; end-to-start matches are not included.")
+    else:
+        suite = generate_test_suite(
+            length=3000,
+            n_reads=20,
+            read_len=40,
+            error_rate=0.02,
+            seed=7
+        )
+        g = suite["genome"]
     # Generate a random DNA testing suite
     suite = generate_test_suite(
-        length=3000,
+        length=50000,
         n_reads=20,
         read_len=40,
         error_rate=0.02,
-        seed=7
+        seed=71
     )
 
     g = suite["genome"]
