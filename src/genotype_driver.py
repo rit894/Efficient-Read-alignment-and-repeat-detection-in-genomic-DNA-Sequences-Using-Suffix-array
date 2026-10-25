@@ -66,6 +66,7 @@ def simulate_reads(genome: str, n_reads: int = 20, read_len: int = 50,
     Each read: {"id", "seq", "true_pos", "strand", "mismatches"} where true_pos is the
     start in the forward genome and strand '-' means the read is the reverse complement.
     """
+   
     rnd = random.Random(seed)
     reads = []
     for i in range(n_reads):
@@ -111,14 +112,39 @@ def write_fasta(path: str, name: str, seq: str, width: int = 70) -> None:
 
 
 def read_fasta(path: str) -> str:
-    """Read a FASTA file into one uppercase ACGT string (headers and other symbols dropped)."""
-    seq = []
+    """Read one non-empty DNA sequence containing only A, C, G and T."""
+    parts = []
+    headers = 0
+
     with open(path) as f:
         for line in f:
-            if not line.startswith(">"):
-                seq.append(line.strip().upper())
-    return "".join(c for c in "".join(seq) if c in BASES)
+            line = line.strip()
+            if not line:
+                continue
 
+            if line.startswith(">"):
+                headers += 1
+                if headers > 1 or parts:
+                    raise ValueError(
+                        "Please provide one FASTA sequence per file"
+                    )
+                continue
+
+            sequence = line.upper()
+            invalid = set(sequence) - set(BASES)
+            if invalid:
+                raise ValueError(
+                    "Unsupported DNA symbols: "
+                    + ", ".join(sorted(invalid))
+                )
+
+            parts.append(sequence)
+
+    genome = "".join(parts)
+    if not genome:
+        raise ValueError("The file contains no DNA sequence")
+
+    return genome
 
 def generate_test_suite(length: int = 5000, gc_content: float = 0.5, n_reads: int = 30,
                         read_len: int = 50, error_rate: float = 0.02, n_queries: int = 50,
