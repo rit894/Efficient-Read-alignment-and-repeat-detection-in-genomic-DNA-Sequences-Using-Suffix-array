@@ -98,6 +98,7 @@ def hamming(a: str, b: str) -> int:
 
 def approximate_search(text: str, pattern: str, k: int,
                        matcher: PatternMatcherADT) -> List[Tuple[int, int]]:
+    
     """
     All positions where `pattern` matches `text` with at most k substitutions.
     Pigeonhole principle: if the pattern is cut into k+1 pieces, any match with
@@ -108,6 +109,11 @@ def approximate_search(text: str, pattern: str, k: int,
     `matcher` must already be preprocessed on `text`.
     Returns sorted (position, mismatches) pairs.
     """
+    if not pattern:
+        raise ValueError("pattern must be non-empty")
+
+    if k < 0:
+        raise ValueError("allowed mismatches must be zero or greater")
     m, n = len(pattern), len(text)
     # A pattern longer than the text cannot match at any position.
     if m > n:
