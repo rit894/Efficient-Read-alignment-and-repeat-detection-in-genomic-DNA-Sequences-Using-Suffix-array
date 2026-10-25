@@ -1,0 +1,13 @@
+
+## Presenter 1: study and viva questions
+
+Study src/adt.py, NaiveMatcher, KMPMatcher, src/genotype_driver.py and tests/test_all.py.
+
+1. What is an ADT? A contract for operations and behavior independent of representation.
+2. Why one matcher interface? The same tests and benchmark can call each algorithm consistently.
+3. Why compare against KMP? It is a linear-scan baseline with no genome index build.
+4. Why fixed seeds? Data is reproducible, although timing can vary.
+5. What does the corrected FASTA reader support? One nonempty ACGT sequence, lowercase normalization, and clear rejection of ambiguous symbols or multiple records.
+6. What do the tests check? Fixed outputs, suffix order, brute-force LCP, inverse BWT, randomized matcher agreement and read mapping.
+
+Handoff: The baselines rescan the reference. Next we explain a suffix-array index that we reuse across queries.
