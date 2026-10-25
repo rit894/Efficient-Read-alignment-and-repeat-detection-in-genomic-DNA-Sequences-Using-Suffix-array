@@ -268,6 +268,8 @@ class FMIndex(FMIndexADT):
 
     # Narrow the matching suffix-array interval from right to left through the pattern.
     def backward_search(self, pattern: str) -> Tuple[int, int]:
+        if not pattern:
+            raise ValueError("pattern must be non-empty")
         lo, hi = 0, self.n
         for c in reversed(pattern):
             if c not in self.C:
@@ -312,6 +314,8 @@ class NaiveMatcher(PatternMatcherADT):
         self.text = text
 
     def find_all(self, pattern: str) -> List[int]:
+        if not pattern:
+            raise ValueError("pattern must be non-empty")
         n, m, t = len(self.text), len(pattern), self.text
         return [i for i in range(n - m + 1) if t[i:i + m] == pattern]
 
@@ -338,7 +342,8 @@ class KMPMatcher(PatternMatcherADT):
     def find_all(self, pattern: str) -> List[int]:
         m = len(pattern)
         if m == 0:
-            return []
+            if not pattern:
+                raise ValueError("pattern must be non-empty")
         fail, res, k = self.failure_function(pattern), [], 0
         # Scan the text once, reusing matched-prefix information after mismatches.
         for i, c in enumerate(self.text):
