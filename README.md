@@ -24,7 +24,9 @@ both DNA strands, longest repeated substring, longest common substring of two ge
 ```
 dna_suffix_array_project/
 |-- README.md                  <- this file
-|-- main.py                    <- entry point with main() and command-line interface
+|-- main/
+|   |-- __init__.py
+|   `-- main.py                <- entry point with main() and command-line interface
 |-- requirements.txt           <- optional: matplotlib (only for plots)
 |-- src/
 |   |-- adt.py                 <- ADT definitions (abstract classes) for every structure
@@ -34,20 +36,23 @@ dna_suffix_array_project/
 |   `-- benchmark.py           <- timing and memory comparison, CSV + plot
 |-- tests/
 |   |-- test_cases.json        <- constant, hand-checked test cases
-|   `-- test_all.py            <- 17 unit tests (JSON cases + randomized cross-checks)
+|   |-- test_all.py            <- 17 algorithm tests
+|   `-- test_reference_cli.py  <- 10 reference-data and command-line tests
 |-- docs/
 |   |-- PROJECT_INFO.md        <- problem statement, objectives, scope, limitations
 |   |-- ADT_SPECIFICATION.md   <- ADT of every data structure (operations, invariants)
 |   |-- COMPLEXITY_ANALYSIS.md <- time and space complexity + measured results
 |   |-- PRESENTATION_OUTLINE.md<- slide-by-slide outline and demo script
 |   |-- GLOSSARY.md            <- terms explained simply
+|   |-- REAL_REFERENCE_DATA.md <- NCBI provenance and interpretation
 |   `-- REFERENCES.md
 |-- data/
+|   |-- phiX174_NC_001422.1.fasta <- 5,386-base real NCBI reference
 |   |-- sample_genome.fasta    <- 20,000-base synthetic genome
 |   `-- sample_strain.fasta    <- the same genome with 1 % mutations
 |-- results/
 |   |-- benchmark.csv / benchmark.png / benchmark_output.txt
-|   `-- sample_output.txt      <- output of `python main.py demo`
+|   `-- sample_output.txt      <- recorded output of the original synthetic demo
 `-- standalone/
     `-- dna_suffix_array_all_in_one.py   <- everything merged into one file with main()
 ```
@@ -56,17 +61,40 @@ dna_suffix_array_project/
 FASTA genome → SuffixArray → LCP / BWT → FMIndex → applications (search, align, repeats, compare) → tests and benchmark
 ## Quick start
 
-Requires Python 3.10 or newer. No packages are needed (matplotlib is optional, for the plot).
+Requires Python 3.10 or newer. No packages are needed (matplotlib is optional, for the plot). Run these commands from the project root.
+
+Start the demo using the bundled real phiX174 reference:
 
 ```bash
-python -m main.main demo
-python -m main.main test
-python -m main.main search --fasta data/sample_genome.fasta --pattern GAATTC --method sa
-python -m main.main repeats --fasta data/sample_genome.fasta
-python -m main.main align --fasta data/sample_genome.fasta --reads 50 --mismatch 2
+python -m main.main demo --fasta data/phiX174_NC_001422.1.fasta
 ```
 
-Search `--method` options: `naive`, `kmp`, `sa` (default), `fm`.
+Part 2 asks which DNA base or sequence to search for. Enter A, GC or ACGT, for example. The reference contains 5,386 bases. Searching for ACGT reports 19 occurrences. Positions start at zero.
+
+To provide a query without a prompt:
+
+```bash
+python -m main.main demo --fasta data/phiX174_NC_001422.1.fasta --pattern ACGT
+```
+
+The reference is real DNA downloaded from NCBI. The comparison copy and reads are simulated with substitution errors. The reference stays unchanged. The program analyzes the stored sequence linearly and does not include end-to-start matches. See [dataset provenance and limitations](docs/REAL_REFERENCE_DATA.md).
+
+Other commands:
+
+```bash
+python -m main.main test
+python -m main.main search
+python -m main.main search --fasta data/phiX174_NC_001422.1.fasta --pattern ACGT --method sa
+python -m main.main repeats --fasta data/phiX174_NC_001422.1.fasta
+python -m main.main align --fasta data/phiX174_NC_001422.1.fasta --reads 50 --mismatch 2
+python -m main.main demo --pattern GC
+```
+
+The search command asks for a FASTA path and pattern when you omit them. Without --fasta, demo uses the original synthetic 3,000-base genome. Without --pattern, demo asks what sequence to search for.
+
+GC content measures the fraction of individual bases that are G or C. It is separate from searching for the consecutive sequence GC.
+
+Search --method options: naive, kmp, sa (default), fm.
 
 ## Using the code in your own script
 
