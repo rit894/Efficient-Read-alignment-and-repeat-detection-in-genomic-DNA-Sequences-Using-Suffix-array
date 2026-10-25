@@ -485,4 +485,8 @@ def main(argv=None) -> int:
 
 # Run program when executed directly
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except (ValueError, OSError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(2)
