@@ -11,3 +11,47 @@ Study src/adt.py, NaiveMatcher, KMPMatcher, src/genotype_driver.py and tests/tes
 6. What do the tests check? Fixed outputs, suffix order, brute-force LCP, inverse BWT, randomized matcher agreement and read mapping.
 
 Handoff: The baselines rescan the reference. Next we explain a suffix-array index that we reuse across queries.
+
+## Complexity reference
+
+n = indexed text length, m = pattern length, occ = reported matches, B = Occ checkpoint spacing, s = SA sample interval.
+
+| Operation | Time |
+|---|---|
+| SA construction | O(n log² n) |
+| LCP given SA | O(n) |
+| BWT given SA | O(n) |
+| Inverse BWT in this code | O(n log n) |
+| SA bounds/count | O(m log n) |
+| SA search with sorted output | O(m log n + occ log occ) |
+| FM construction given SA | O(sigma n), linear for the fixed DNA alphabet |
+| FM count | O(mB), or O(m) for fixed B |
+| FM sorted locate | O(mB + occ s B + occ log occ) |
+| KMP | O(n+m) |
+| Naive | O(nm) worst case |
+| Longest repeat | O(n log² n) total |
+| Longest common substring | O((a+b) log²(a+b)) |
+
+SA construction uses O(n) auxiliary words. SA search uses O(m+occ) including temporary slices and output. KMP uses O(m+occ) including its failure table and output. Naive also uses temporary slices and output. FM locate uses O(occ) result/sort storage beyond its index. Theoretical packed bit counts do not describe Python object overhead.
+
+Approximate matching: if m <= k, the implementation verifies all starts in O((n-m+1)m). Otherwise, with suffix-array seeds, let H_j be the hit count and l_j the length of seed j, and let C be the number of unique valid candidate starts. Seed searches cost O(sum_j(l_j log n + H_j log H_j)). Candidate sorting costs O(C log C), and verification costs O(Cm). The sum of seed lengths is m. Set insertion uses expected constant time. Each read performs two such searches, reusing one reference index. Repetitive text can produce many seed hits and candidates.
+
+## Live demo
+
+Run from the project root with Python 3.10 or newer:
+
+```bash
+python -m main.main test
+python -m main.main demo
+python -m main.main search --fasta data/sample_genome.fasta --pattern GAATTC --method sa
+python -m main.main repeats --fasta data/sample_genome.fasta
+python -m main.main align --fasta data/sample_genome.fasta --reads 50 --mismatch 2
+```
+
+The reviewed copy passed the 17 supplied tests, including after the genotype_driver update. Rehearse the current team copy after all edits. Slide 19 uses the supplied recorded 200,000-base benchmark, not a new full run.
+
+A simulated read with more errors than the mismatch budget may legitimately remain unmapped. Overlapping repeat occurrences count. Reported positions start from zero.
+
+## Individual GitHub proof
+
+Each member should show their own account and genuine commits, explain what they changed, and understand the overall pipeline. This presentation split does not establish historical contribution. Rehearse by having each member explain their section, trace one example, run one command and answer questions from a teammate.
