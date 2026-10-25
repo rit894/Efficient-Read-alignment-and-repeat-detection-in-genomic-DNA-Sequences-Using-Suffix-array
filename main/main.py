@@ -3,15 +3,17 @@ main.py - Entry point of the DNA Suffix Array case study
 
 Usage (run from the project folder):
 
-    python main.py                      run the demo (same as 'demo')
-    python main.py demo                 step-by-step walkthrough on 'banana' and on random DNA
-    python main.py test                 run all unit tests
-    python main.py benchmark            time Naive / KMP / Suffix Array / FM-Index
-    python main.py generate             write random genome, strain, reads, queries to files
-    python main.py search  --fasta G.fasta --pattern ACGTACGT [--method sa|fm|kmp|naive]
-    python main.py repeats --fasta G.fasta
-    python main.py compare --fasta A.fasta --fasta2 B.fasta
-    python main.py align   --fasta G.fasta [--reads 50 --read-len 50 --error 0.02 --mismatch 2]
+    python -m main.main                      run the demo and ask for a DNA search in Part 2
+    python -m main.main demo                 walkthrough, then ask what to search in the 3,000-base genome
+    python -m main.main demo --fasta data/phiX174_NC_001422.1.fasta
+    python -m main.main test                 run all unit tests
+    python -m main.main benchmark            time Naive / KMP / Suffix Array / FM-Index
+    python -m main.main generate             write random genome, strain, reads, queries to files
+    python -m main.main search              ask for a FASTA file and DNA pattern
+    python -m main.main search  --fasta G.fasta --pattern ACGTACGT [--method sa|fm|kmp|naive]
+    python -m main.main repeats --fasta G.fasta
+    python -m main.main compare --fasta A.fasta --fasta2 B.fasta
+    python -m main.main align   --fasta G.fasta [--reads 50 --read-len 50 --error 0.02 --mismatch 2]
 """
 
 # Built-in modules used throughout the project
@@ -51,6 +53,7 @@ from src.applications import (
 # Import data generation and FASTA utilities
 from src.genotype_driver import (
     generate_test_suite,
+    mutate,
     plant_repeats,
     random_genome,
     read_fasta,
@@ -73,11 +76,11 @@ METHODS = {
 # ---------------------------------------------------------------------------
 # demo
 # ---------------------------------------------------------------------------
-def demo() -> None:
+def demo(query_pattern=None, fasta_path=None) -> None:
     """
     Demonstrates how suffix arrays, LCP arrays,
     BWT and FM-index work using 'banana' and a
-    randomly generated DNA genome.
+    reference loaded from FASTA or a generated DNA genome.
     """
 
     print("=" * 66)
@@ -130,22 +133,61 @@ def demo() -> None:
     print(f"  stored SA entries: {fm.stored_sa_entries()} of {fm.n} (rest recovered by LF-walking)")
 
     print("\n" + "=" * 66)
-    print(" PART 2 - Random DNA (genotype driver)")
+    if fasta_path:
+        print(" PART 2 - DNA from a reference FASTA file")
+    else:
+        print(" PART 2 - Random DNA (genotype driver)")
     print("=" * 66)
 
     # Generate a random DNA testing suite
     suite = generate_test_suite(
-        length=50000,
+        length=3000,
         n_reads=20,
         read_len=40,
         error_rate=0.02,
-        seed=71
+        seed=7
     )
 
     g = suite["genome"]
 
-    # Compute and display GC content
-    print(f"Genome length {len(g)}, GC content {gc_content(g):.2%}")
+    # GC content is a composition statistic, separate from a pattern search.
+    print(f"Genome length {len(g)}, GC content (G + C bases) {gc_content(g):.2%}")
+
+    if query_pattern is None:
+        while True:
+            try:
+                query_pattern = input(
+                    "Enter a DNA base or sequence to search in this genome "
+                    "(for example A, GC or ACGT): "
+                ).strip().upper()
+            except EOFError as exc:
+                raise ValueError(
+                    "no search input received; run demo --pattern ACGT "
+                    "when using non-interactive input"
+                ) from exc
+            if query_pattern and set(query_pattern) <= set("ACGT"):
+                break
+            print("Please enter a non-empty sequence using only A, C, G and T.")
+    else:
+        query_pattern = query_pattern.strip().upper()
+        if not query_pattern or not set(query_pattern) <= set("ACGT"):
+            raise ValueError(
+                "search pattern must be non-empty and contain only A, C, G and T"
+            )
+
+    # Reuse one reference index for the user search and read alignment.
+    matcher = SuffixArrayMatcher()
+    matcher.preprocess(g)
+    user_hits = matcher.find_all(query_pattern)
+    print(f"Search sequence: {query_pattern}")
+    print(f"Occurrences in this {len(g):,}-base genome: {len(user_hits)}")
+    if user_hits:
+        print(
+            f"Positions (zero-based): {user_hits[:20]}"
+            f"{' ... (showing first 20 positions)' if len(user_hits) > 20 else ''}"
+        )
+    else:
+        print("This sequence was not found in the generated genome.")
 
     # Longest repeated substring
     sub, length, pos = longest_repeated_substring(g)
@@ -159,15 +201,9 @@ def demo() -> None:
     s, l, pa, pb = longest_common_substring(g, suite["strain"])
 
     print(
-        f"Longest common substring genome vs mutated strain: "
+        f"Longest common substring reference vs simulated mutated copy: "
         f"length {l} (at {pa} / {pb})"
     )
-
-    # Create suffix-array-based matcher
-    matcher = SuffixArrayMatcher()
-
-    # Build index on genome
-    matcher.preprocess(g)
 
     # Align reads allowing up to 2 mismatches
     aln = align_reads(suite["reads"], matcher, g, max_mismatch=2)
@@ -186,7 +222,7 @@ def demo() -> None:
         )
 
     print(
-        f"Read alignment (<=2 mismatches, both strands): "
+        f"Simulated read alignment (<=2 mismatches, both strands): "
         f"{mapped}/{len(suite['reads'])} mapped, "
         f"{correct} at the true position"
     )
@@ -269,35 +305,68 @@ def cmd_generate(args) -> None:
 
 
 def cmd_search(args) -> None:
-    """
-    Search for a DNA pattern using the selected algorithm.
-    """
+    """Search a FASTA genome, prompting for any missing search inputs."""
+    try:
+        if args.fasta is None:
+            default_fasta = os.path.join(ROOT, "data", "sample_genome.fasta")
+            entered = input(
+                "FASTA file path [Enter for data/sample_genome.fasta]: "
+            ).strip()
+            fasta_path = entered or default_fasta
+        else:
+            fasta_path = args.fasta.strip()
 
-    genome = read_fasta(args.fasta)
+        # Accept a pasted path enclosed in matching quotes.
+        if (len(fasta_path) >= 2
+                and fasta_path[0] == fasta_path[-1]
+                and fasta_path[0] in ("'", '"')):
+            fasta_path = fasta_path[1:-1]
+
+        genome = read_fasta(fasta_path)
+        print(f"Loaded {len(genome):,} DNA bases from {fasta_path}")
+
+        if args.pattern is None:
+            while True:
+                pattern = input(
+                    "DNA sequence to find (A, C, G, T; for example ACGT): "
+                ).strip().upper()
+                if pattern and set(pattern) <= set("ACGT"):
+                    break
+                print("Please enter a non-empty sequence using only A, C, G and T.")
+        else:
+            pattern = args.pattern.strip().upper()
+            if not pattern or not set(pattern) <= set("ACGT"):
+                raise ValueError(
+                    "search pattern must be non-empty and contain only A, C, G and T"
+                )
+    except EOFError as exc:
+        raise ValueError(
+            "search input ended early; provide --fasta and --pattern "
+            "when running without interactive input"
+        ) from exc
 
     matcher = METHODS[args.method]()
 
-    # Measure preprocessing time
     t = time.perf_counter()
     matcher.preprocess(genome)
     t_pre = time.perf_counter() - t
 
-    # Measure query time
     t = time.perf_counter()
-    hits = matcher.find_all(args.pattern.upper())
+    hits = matcher.find_all(pattern)
     t_q = time.perf_counter() - t
 
     print(
         f"{matcher.name}: genome {len(genome):,} bases, "
-        f"preprocess {t_pre:.3f}s, "
-        f"query {t_q * 1000:.3f} ms"
+        f"preprocess {t_pre:.3f}s, query {t_q * 1000:.3f} ms"
     )
-
     print(
-        f"{len(hits)} occurrence(s) of "
-        f"{args.pattern.upper()}: "
-        f"{hits[:20]}{' ...' if len(hits) > 20 else ''}"
+        f"{len(hits)} occurrence(s) of {pattern}: "
+        f"{hits[:20]}{' ... (showing first 20 positions)' if len(hits) > 20 else ''}"
     )
+    if hits:
+        print("Positions are zero-based: the first DNA base is at position 0.")
+    else:
+        print("The DNA sequence was not found in this FASTA genome.")
 
 
 def cmd_repeats(args) -> None:
@@ -416,7 +485,13 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd")
 
     # Demo command
-    sub.add_parser("demo", help="step-by-step walkthrough")
+    d = sub.add_parser("demo", help="walkthrough with a DNA search in Part 2")
+    d.add_argument(
+        "--pattern", help="DNA sequence to search in Part 2; asks you if omitted"
+    )
+    d.add_argument(
+        "--fasta", help="reference FASTA for Part 2; otherwise generate synthetic DNA"
+    )
 
     # Unit test command
     sub.add_parser("test", help="run unit tests")
@@ -437,8 +512,8 @@ def main(argv=None) -> int:
 
     # Search command
     s = sub.add_parser("search", help="find a pattern in a FASTA genome")
-    s.add_argument("--fasta", required=True)
-    s.add_argument("--pattern", required=True)
+    s.add_argument("--fasta", help="FASTA file path; asks you if omitted")
+    s.add_argument("--pattern", help="DNA sequence to find; asks you if omitted")
     s.add_argument("--method", choices=METHODS, default="sa")
 
     # Repeats command
@@ -464,7 +539,10 @@ def main(argv=None) -> int:
 
     # Execute command
     if args.cmd in (None, "demo"):
-        demo()
+        demo(
+            query_pattern=getattr(args, "pattern", None),
+            fasta_path=getattr(args, "fasta", None)
+        )
     elif args.cmd == "test":
         return cmd_test()
     elif args.cmd == "benchmark":
