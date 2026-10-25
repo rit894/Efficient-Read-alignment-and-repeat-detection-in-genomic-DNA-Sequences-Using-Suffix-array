@@ -1,22 +1,18 @@
 
-## Presenter 3: study and viva questions
-
-Study LCPArray and src/applications.py.
-
-1. Why maximum LCP for repeats? Suffixes sharing a prefix form a consecutive group, so a longest shared prefix appears between adjacent suffixes.
-2. Why is Kasai linear? It reuses a prefix length that drops at most once per text step, bounding total extensions.
-3. Is lcp_between constant time? No. It scans a slice in O(j-i).
-4. Why the # separator? It keeps the two genomes distinct during comparison.
-5. Why k+1 seeds? At most k substitutions cannot affect every one of k+1 nonempty pieces.
-6. Why use a set? Several seed hits can imply the same full-pattern start.
-7. What is reverse complement? Complement A/T and C/G, then reverse. AACG becomes CGTT.
-8. Are insertion/deletion errors supported? No. Hamming matching checks substitutions without gaps.
-
-Example: ACGTAC with k=1 gives ACG and TAC. A TAC hit at position 13 implies full-pattern start 10 because its seed offset is 3.
-
-Handoff: These applications reuse an indexed matcher. Next we explain the FM-index alternative and its storage trade-offs.
 
 
+## Presenter 1: study and viva questions
+
+Study src/adt.py, NaiveMatcher, KMPMatcher, src/genotype_driver.py and tests/test_all.py.
+
+1. What is an ADT? A contract for operations and behavior independent of representation.
+2. Why one matcher interface? The same tests and benchmark can call each algorithm consistently.
+3. Why compare against KMP? It is a linear-scan baseline with no genome index build.
+4. Why fixed seeds? Data is reproducible, although timing can vary.
+5. What does the corrected FASTA reader support? One nonempty ACGT sequence, lowercase normalization, and clear rejection of ambiguous symbols or multiple records.
+6. What do the tests check? Fixed outputs, suffix order, brute-force LCP, inverse BWT, randomized matcher agreement and read mapping.
+
+Handoff: The baselines rescan the reference. Next we explain a suffix-array index that we reuse across queries.
 
 ## Complexity reference
 
