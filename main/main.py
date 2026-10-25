@@ -135,11 +135,11 @@ def demo() -> None:
 
     # Generate a random DNA testing suite
     suite = generate_test_suite(
-        length=3000,
+        length=50000,
         n_reads=20,
         read_len=40,
         error_rate=0.02,
-        seed=7
+        seed=71
     )
 
     g = suite["genome"]
@@ -481,6 +481,7 @@ def main(argv=None) -> int:
         cmd_align(args)
 
     return 0
+
 
 
 # Run program when executed directly
