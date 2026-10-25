@@ -22,7 +22,7 @@ import time
 import unittest
 
 # Get the absolute path of the project root directory
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Add project root to Python's module search path
 sys.path.insert(0, ROOT)

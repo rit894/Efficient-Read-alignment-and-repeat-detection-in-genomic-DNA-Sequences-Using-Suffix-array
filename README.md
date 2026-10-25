@@ -59,14 +59,11 @@ FASTA genome → SuffixArray → LCP / BWT → FMIndex → applications (search,
 Requires Python 3.10 or newer. No packages are needed (matplotlib is optional, for the plot).
 
 ```bash
-python main.py demo         # walkthrough on 'banana' + random DNA
-python main.py test         # run all unit tests
-python main.py benchmark    # compare Naive / KMP / Suffix Array / FM-Index
-python main.py generate     # create random genome, strain, reads
-python main.py search  --fasta data/sample_genome.fasta --pattern GAATTC --method fm
-python main.py repeats --fasta data/sample_genome.fasta
-python main.py compare --fasta data/sample_genome.fasta --fasta2 data/sample_strain.fasta
-python main.py align   --fasta data/sample_genome.fasta --reads 50 --mismatch 2
+python -m main.main demo
+python -m main.main test
+python -m main.main search --fasta data/sample_genome.fasta --pattern GAATTC --method sa
+python -m main.main repeats --fasta data/sample_genome.fasta
+python -m main.main align --fasta data/sample_genome.fasta --reads 50 --mismatch 2
 ```
 
 Search `--method` options: `naive`, `kmp`, `sa` (default), `fm`.
