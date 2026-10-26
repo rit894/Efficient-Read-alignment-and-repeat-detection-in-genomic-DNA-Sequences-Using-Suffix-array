@@ -73,9 +73,9 @@ METHODS = {
 }
 
 
-# ---------------------------------------------------------------------------
+
 # demo
-# ---------------------------------------------------------------------------
+
 def demo(query_pattern=None, fasta_path=None) -> None:
     """
     Demonstrates how suffix arrays, LCP arrays,
