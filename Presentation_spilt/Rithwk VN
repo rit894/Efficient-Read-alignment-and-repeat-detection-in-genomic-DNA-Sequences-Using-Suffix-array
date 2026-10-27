@@ -24,7 +24,6 @@ Study BWT, FMIndex, FMIndexMatcher, src/benchmark.py and main/main.py.
 Example: banana$ has BWT annb$aa. Backward search for ana uses [0,7), [1,4), [5,7), [2,4), leaving two matches.
 
 
-
 ## Complexity reference
 
 n = indexed text length, m = pattern length, occ = reported matches, B = Occ checkpoint spacing, s = SA sample interval.
