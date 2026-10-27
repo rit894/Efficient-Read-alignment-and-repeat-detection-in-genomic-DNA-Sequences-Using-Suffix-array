@@ -1,6 +1,15 @@
 
 ## Presenter 4: study and viva questions
 
+
+
+
+# FM INDEXING FORMULA : 
+
+
+1.next_row = C[BWT[current_row]]+ Occ(BWT[current_row], current_row)
+
+
 Study BWT, FMIndex, FMIndexMatcher, src/benchmark.py and main/main.py.
 
 1. Does BWT alone compress data? It rearranges characters. This code stores the result as a string.
